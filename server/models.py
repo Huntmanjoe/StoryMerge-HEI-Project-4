@@ -10,6 +10,11 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
 
+    prompts = db.relationship('Prompt', back_populates='user', cascade='all, delete-orphan')
+    entries = db.relationship('Entry', back_populates='user', cascade='all, delete-orphan')
+
+    serialize_rules = ('-prompts.user', '-entries.user')
+
     def __repr__(self):
         return f'<User {self.id}, name {self.name}>'
 
@@ -20,6 +25,10 @@ class Prompt(db.Model, SerializerMixin):
     title = db.Column(db.String)
     content = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    user = db.relationship('User', back_populates='prompts')
+
+    serialize_rules = ('-user.prompts',)
 
     def __repr__(self):
         return f'<Prompt {self.id}, User id {self.user_id}, title {self.title}, content {self.content}>'
@@ -41,9 +50,12 @@ class Entry(db.Model, SerializerMixin):
     content = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+    user = db.relationship('User', back_populates='entries')
+
+    serialize_rules = ('-user.entries',)
+
     def __repr__(self):
         return f'<Entry {self.id}, user ID {self.user_id}, content {self.content if len(self.content) <= 200 else self.content[:201]}>'
-
 
 class Story(db.Model, SerializerMixin):
     __tablename__ = "stories"
