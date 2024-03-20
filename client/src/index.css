@@ -5,3 +5,152 @@
   --text: hsla(0, 0%, 100%, 0.88);
 }
 
+.homepage-container {
+  margin: 20px auto;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-section {
+  text-align: center;
+}
+
+.welcome-image {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 10px;
+}
+
+.action-links, .auth-links {
+  margin-top: 20px;
+}
+
+.action-link, .auth-link {
+  margin-right: 10px;
+  text-decoration: none;
+  color: #007bff; 
+  border: 1px solid #007bff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.action-link:hover, .auth-link:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.separator {
+  margin-left: 10px;
+}
+
+.stories-header {
+  margin-top: 40px;
+}
+
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+  gap: 20px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.story {
+  background-color: #f8f9fa; 
+  border: 1px solid #dee2e6; 
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  width: 100%; 
+  max-width: 600px; 
+  box-sizing: border-box; 
+}
+
+.story h3 {
+  margin: 0;
+  margin-bottom: 10px;
+  font-size: 1.5em;
+}
+
+.story p {
+  margin: 0;
+  margin-bottom: 5px;
+  font-size: 1em;
+}
+
+.story .view-story-link {
+  margin-top: 10px; 
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: skyblue;
+  font-family: Arial, sans-serif; 
+}
+
+.navbar-title {
+  font-size: 24px;
+  color: white;
+  text-decoration: none; 
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-link, .login-button {
+  margin-left: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+  background: transparent;
+  border: 2px solid white;
+  border-radius: 5px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.navbar-link:hover, .login-button:hover {
+  background-color: white;
+  color: skyblue;
+}
+
+
+.login-button {
+  background-color: white;
+  color: skyblue;
+  border: none;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+}.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+}

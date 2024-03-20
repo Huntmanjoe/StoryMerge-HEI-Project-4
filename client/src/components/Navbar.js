@@ -1,22 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import '../index.css'; 
 
 function Navbar() {
     return (
-      <nav style={{
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        padding: '20px', 
-        background: 'skyblue'
-      }}>
-        <h1>StoryMerge</h1>
-        <button style={{
-          padding: '10px 20px', 
-          fontSize: '16px', 
-          cursor: 'pointer'
-        }}>Login</button>
+      <nav className="navbar">
+        <Link to="/" className="navbar-title">StoryMerge</Link>
+        <div className="navbar-links">
+          <Link to="/" className="navbar-link">Home</Link>
+          <Link to="/create-prompt" className="navbar-link">Create New Prompt</Link>
+          <button className="login-button">Login</button>
+        </div>
       </nav>
     );
-  }
-
+}
 export default Navbar;

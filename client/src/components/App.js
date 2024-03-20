@@ -6,24 +6,29 @@ import LoginPage from './LoginPage';
 import NewEntryForm from './NewEntryForm';
 import StoryList from './StoryList';
 import Homepage from './Homepage'; 
+import Footer from './Footer';
+import '../index.css'; 
 
 function App() {
   return (
     <Router>
-      <Navbar />
-      <Switch>
-        <Route path="/login">
-          <LoginPage />
-        </Route>
-        
-    
-        <Route path="/story-list">
-          <StoryList />
-        </Route>
-        <Route exact path="/">
-          <Homepage />
-        </Route>
-      </Switch>
+      <div className="app-container">
+        <Navbar />
+        <div className="content"> 
+          <Switch>
+            <Route path="/login">
+              <LoginPage />
+            </Route>
+            <Route path="/story-list">
+              <StoryList />
+            </Route>
+            <Route exact path="/">
+              <Homepage />
+            </Route>
+          </Switch>
+        </div>
+        <Footer />
+      </div>
     </Router>
   );
 }
