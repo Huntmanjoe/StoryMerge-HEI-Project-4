@@ -8,7 +8,7 @@ function LoginPage({ onLogin }) {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        // Replace this with your authentication logic
+      
         onLogin(username);
         history.push('/');
     };
