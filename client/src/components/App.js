@@ -6,7 +6,8 @@ import NewPromptForm from './NewPromptForm';
 import Homepage from './Homepage';
 import NewEntryForm from './NewEntryForm';
 import StoryList from './StoryList';
-import Footer from './Footer'; // Ensure this is imported
+import UserProfile from './UserProfile'; // Ensure this is imported
+import Footer from './Footer';
 
 function App() {
     const [stories, setStories] = useState([]);
@@ -17,7 +18,7 @@ function App() {
 
     return (
         <Router>
-            <div className="site-content"> {/* Wrap your content */}
+            <div className="site-content">
                 <Navbar />
                 <div className="main-content">
                     <Switch>
@@ -33,10 +34,12 @@ function App() {
                         <Route path="/view-stories">
                             <StoryList />
                         </Route>
+                        <Route path="/user/:userId">
+                            <UserProfile />
+                        </Route>
                         <Route exact path="/">
                             <Homepage />
                         </Route>
-                      
                     </Switch>
                 </div>
                 <Footer /> 
