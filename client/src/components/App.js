@@ -7,6 +7,8 @@ import Homepage from './Homepage';
 import NewEntryForm from './NewEntryForm';
 import StoryList from './StoryList';
 import Footer from './Footer'; // Ensure this is imported
+import StoryPage from './StoryPage'; 
+
 
 function App() {
     const [stories, setStories] = useState([]);
@@ -33,6 +35,7 @@ function App() {
                         <Route path="/view-stories">
                             <StoryList />
                         </Route>
+                        <Route path="/story/:storyId" component={StoryPage} />
                         <Route exact path="/">
                             <Homepage />
                         </Route>
