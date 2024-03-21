@@ -1,38 +1,45 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; 
-import '../index.css'; 
-
+import { Link } from 'react-router-dom';
+import './Homepage.css'; 
 
 function Homepage() {
     return (
         <div className="homepage-container">
-            <div className="welcome-section">
-                <h1>Welcome to Our Collaborative Platform!</h1>
-                <p>Explore, contribute, and create interactive stories with our community.</p>
-                <img src="../Storypage.jpg" alt="Welcome" className="welcome-image" />
-            </div>
-            <div className="action-links">
-                <Link to="/new-prompt" className="action-link">Create New Prompt</Link>
-                <Link to="/story-list" className="action-link">View Stories</Link>
-            </div>
-            <div className="auth-links">
-                <Link to="/login" className="auth-link">Login</Link>
-                <span className="separator">|</span>
-                <Link to="/new-entry" className="auth-link">Submit an Entry</Link>
-            </div>
-            <h2 className="stories-header">New Stories:</h2>
-            <div className="stories-grid">
-                <div className="story">
-                <div className="story">
-                    <h3>Story Title</h3> 
-                    <p>by Username</p> 
-                    <p>Original prompt by: Placeholder Username</p> 
-                    <Link to="/story/1" className="view-story-link">View This Story</Link> 
+            <section className="welcome-section">
+                <div className="welcome-text">
+                    <h1>Welcome to StoryMerge!</h1>
+                    <p>Explore, contribute, and create interactive stories with our community.</p>
+                    <Link to="/story-list" className="action-button">View Stories</Link>
                 </div>
+                <div className="welcome-image">
+                    <img src="/Storypage.jpg" alt="Welcome" />
                 </div>
-            </div>
+            </section>
+            <section className="features-section">
+                <div className="feature">
+                    <h2>Create</h2>
+                    <p>Unleash your creativity by writing your own stories.</p>
+                    <Link to="/new-entry" className="feature-link">Submit an Entry</Link>
+                </div>
+                <div className="feature">
+                    <h2>Explore</h2>
+                    <p>Dive into a variety of stories created by our community.</p>
+                    <Link to="/story-list" className="feature-link">Discover Stories</Link>
+                </div>
+                <div className="feature">
+                    <h2>Connect</h2>
+                    <p>Join discussions and connect with fellow storytellers.</p>
+                    <Link to="/login" className="feature-link">Join Now</Link>
+                </div>
+            </section>
+            <section className="about-section">
+                <h2>About StoryMerge</h2>
+                <p>StoryMerge is a collaborative platform for sharing and creating stories. Join our community of writers and readers, explore new genres, and contribute to collaborative storytelling.</p>
+            </section>
         </div>
     );
 }
 
 export default Homepage;
+
+
