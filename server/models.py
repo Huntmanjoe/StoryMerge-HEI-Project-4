@@ -14,6 +14,7 @@ class User(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
+    password = db.Column(db.String, nullable=False)
 
     prompts = db.relationship('Prompt', back_populates='user', cascade='all, delete-orphan')
     entries = db.relationship('Entry', back_populates='user', cascade='all, delete-orphan')
