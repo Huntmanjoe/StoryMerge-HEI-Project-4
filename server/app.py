@@ -200,6 +200,33 @@ class StoryByID(Resource):
     
 api.add_resource(StoryByID, '/stories/<int:id>')
 
+class Login(Resource):
+
+    def post(self):
+        user = User.query.filter(User.name == request.get_json['name']).first()
+        db.session['user.id'] = user.id
+        return user.to_dict()
+    
+api.add_resource(Login, '/login')
+
+class CheckSession(Resource):
+
+    def get(self):
+        user = User.query.filter(User.id == db.session.get('user_id')).first()
+        if user:
+            return user.to_dict()
+        return {'message': '401: Not Authorized'}, 401
+    
+api.add_resource(CheckSession, '/check_session')
+
+class Logout(Resource):
+
+    def delete(self):
+        db.session['user_id'] = None
+        return {'message': '204: No Content'}, 204
+    
+api.add_resource(Logout, '/logout')
+
 @app.route('/')
 def index():
     return '<h1>Project Server</h1>'
