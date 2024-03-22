@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { AuthProvider } from './AuthContext'; // Make sure the path is correct
 import Navbar from './Navbar';
@@ -16,6 +16,16 @@ function App() {
     const handleAddStory = (newStory) => {
         setStories(prevStories => [...prevStories, newStory]);
     };
+
+    const [user, setUser] = useState();
+
+    useEffect(() => {
+        fetch('/check_session').then(response => {
+            if (response.ok) {
+                response.json().then(user => setUser(user));
+            }
+        });
+    }, []);
 
     return (
         <AuthProvider> 
