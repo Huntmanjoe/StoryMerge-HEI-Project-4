@@ -12,16 +12,9 @@ function LoginPage() {
 
     const handleLoginSubmit = (event) => {
         event.preventDefault();
-        if (isSignUp) {
-            // Here you'd include your actual sign-up logic, possibly sending info to a server
-            // For demonstration, we're logging and invoking the login upon registration
-            console.log('Sign up:', { username, password, email });
-            login(username); // Simulate login by setting the username in the context
-            history.push(`/user/${username}`); // Redirect to the newly signed-up user's profile
-        } else {
-            login(username); // In a real application, validate credentials before logging in
-            history.push(`/user/${username}`); // Redirect to the existing user's profile
-        }
+        login(username);  // Assuming login function updates auth context
+        localStorage.setItem('currentUser', JSON.stringify({ username })); // Store user's information
+        history.push(`/user/${username}`); // Redirect to user's profile page
     };
 
     const toggleForm = () => {
