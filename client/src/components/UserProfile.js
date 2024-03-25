@@ -1,28 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-
-const users = [
-    { id: 101, name: 'Jane Doe', bio: 'Lover of mysteries and adventures.', favoriteBook: 'The Hidden Depths', imageUrl: 'https://via.placeholder.com/150' },
-    { id: 102, name: 'John Smith', bio: 'Space enthusiast and sci-fi author.', favoriteBook: 'Among the Stars', imageUrl: 'https://via.placeholder.com/150' },
-];
+import { useHistory } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 function UserProfile() {
-    const { userId } = useParams();
-    const [user, setUser] = useState(null);
+    const { logout } = useAuth();
+    const history = useHistory();
+    const [user, setUser] = useState({ name: '', bio: '', favoriteBook: '', imageUrl: '' });
 
     useEffect(() => {
-        const userIndex = users.findIndex(user => user.id === parseInt(userId));
-        setUser(users[userIndex]);
-    }, [userId]);
+        const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (loggedInUser) {
+            setUser({
+                name: loggedInUser.username,
+                bio: 'Default bio',
+                favoriteBook: 'Default book',
+                imageUrl: 'https://via.placeholder.com/150'
+            });
+        }
+    }, []);
+
+    const handleLogout = () => {
+        logout();
+        localStorage.removeItem('currentUser');
+        history.push('/login');
+    };
 
     const handleBioChange = (event) => setUser({ ...user, bio: event.target.value });
     const handleBookChange = (event) => setUser({ ...user, favoriteBook: event.target.value });
+    const handleImageChange = (event) => {
+        if (event.target.files && event.target.files[0]) {
+            let img = event.target.files[0];
+            setUser({ ...user, imageUrl: URL.createObjectURL(img) });
+        }
+    };
 
-    if (!user) return <div style={styles.container}>John Doe</div>;
+    if (!user.name) return <div>Loading...</div>;
 
     return (
         <div style={styles.container}>
             <img src={user.imageUrl} alt={user.name} style={styles.image} />
+            <input type="file" onChange={handleImageChange} style={styles.fileInput} />
             <h1 style={styles.name}>{user.name}</h1>
             <div style={styles.bio}>
                 <textarea 
@@ -40,6 +57,7 @@ function UserProfile() {
                     style={styles.inputField}
                 />
             </div>
+            <button onClick={handleLogout} style={styles.button}>Logout</button>
         </div>
     );
 }
@@ -62,6 +80,9 @@ const styles = {
         marginTop: '-75px',
         border: '5px solid white',
         objectFit: 'cover',
+    },
+    fileInput: {
+        margin: '10px 0',
     },
     name: {
         fontSize: '28px',
@@ -89,6 +110,16 @@ const styles = {
         height: '40px',
         border: '1px solid #ccc',
         borderRadius: '5px',
+    },
+    button: {
+        marginTop: '20px',
+        padding: '10px 20px',
+        fontSize: '16px',
+        color: 'white',
+        backgroundColor: '#f44336',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
     },
 };
 
