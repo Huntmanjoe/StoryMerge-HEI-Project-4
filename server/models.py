@@ -9,6 +9,9 @@ from config import db, metadata
 #might have overdone it on nullable=False foreign keys for similar reasons
 #maybe give User a "deleted" field that will allow their prompts/entries to persist
 
+#as of now, users each have entries and prompts, all of which show a redundant user_id
+#similarly, entries and prompts have a list of stories, which each have a prompt_id 
+
 class User(db.Model, SerializerMixin):
     __tablename__ = "users"
 
@@ -19,7 +22,9 @@ class User(db.Model, SerializerMixin):
     prompts = db.relationship('Prompt', back_populates='user', cascade='all, delete-orphan')
     entries = db.relationship('Entry', back_populates='user', cascade='all, delete-orphan')
 
-    serialize_rules = ('-prompts.user', '-entries.user')
+    serialize_rules = ('-prompts.user', '-entries.user', '-prompts.stories.entries', 
+                       '-prompts.stories.prompt', '-entries.stories.entries',
+                       '-entries.stories.prompt')
 
     def __repr__(self):
         return f'<User {self.id}, name {self.name}>'
@@ -85,6 +90,8 @@ class Story(db.Model, SerializerMixin):
 
     prompt = db.relationship('Prompt', back_populates='stories')
     entries = db.relationship('Entry', secondary=story_entries, back_populates='stories')
+
+    serialize_rules = ('-prompt.stories', '-prompt.entries', '-entries.stories', '-entries.prompts')
 
     def __repr__(self):
         return f'<Story {self.id}, prompt ID {self.prompt_id}>'
