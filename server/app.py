@@ -11,24 +11,15 @@ from config import app, db, api
 # Add your model imports
 from models import User, Prompt, Entry, Story
 
-# class CRUDOperation:
-#     def __init__(self, operation, fields=None):
-#         self.operation = operation
-#         self.attributes = None
-
-#     def __call__(self):
-
-
-# def make_get(self, fields):
-#     def get(self):
-#         for 
-#     return get
+# need to prevent posting
+# @app.before_request
+# def check_if_logged_in():
+#     if not db.session['user_id'] and request.endpoint
 
 class Users(Resource):
 
     def get(self):
-        #this might work to exclude passwords
-        users = [user.to_dict(rules=("-password",)) for user in User.query.all()]
+        users = [user.to_dict() for user in User.query.all()]
         return make_response(jsonify(users), 200)
     
     def post(self):
@@ -37,6 +28,7 @@ class Users(Resource):
         try:
             new_user = User(
                 name = data['name'],
+                email = data['email'], 
                 password = data['password']
             )
         except:
@@ -46,7 +38,7 @@ class Users(Resource):
         db.session.add(new_user)
         db.session.commit()
 
-        return make_response(new_user.to_dict(), 201)
+        return make_response({'user': new_user.to_dict()}, 201)
     
 api.add_resource(Users, '/users')
 
@@ -67,7 +59,7 @@ class UserByID(Resource):
         db.session.add(user)
         db.session.commit()
 
-        return make_response(user.to_dict(), 202)
+        return make_response({'user': user.to_dict()}, 202)
 
 api.add_resource(UserByID, '/users/<int:id>')
 
@@ -78,6 +70,10 @@ class Prompts(Resource):
         return make_response(jsonify(prompts), 200)
     
     def post(self):
+        if not db.session['user_id']: 
+            if not db.session['user_id'] in User.query.filter_by(id=db.session['user_id']):
+                return make_response(jsonify({'error': 'Unauthorized'}, 401))
+            
         data = request.get_json()
 
         try:
@@ -93,7 +89,7 @@ class Prompts(Resource):
         db.session.add(new_prompt)
         db.session.commit()
 
-        return make_response(new_prompt.to_dict(), 201)
+        return make_response({'prompt': new_prompt.to_dict()}, 201)
     
 api.add_resource(Prompts, '/prompts')
 
@@ -104,6 +100,8 @@ class PromptByID(Resource):
         return make_response(jsonify(prompt), 200)
 
     def patch(self, id):
+        # if not db.session['user_id']: 
+        #     if db.session['user_id'] != 
         prompt = Prompt.query.filter_by(id=id).first()
         for attr in request.json:
             setattr(prompt, attr, request.json[attr])
@@ -111,7 +109,7 @@ class PromptByID(Resource):
         db.session.add(prompt)
         db.session.commit()
 
-        return make_response(prompt.to_dict(), 202)
+        return make_response({'prompt': prompt.to_dict()}, 202)
 
 api.add_resource(PromptByID, '/prompts/<int:id>')
 
@@ -122,6 +120,10 @@ class Entries(Resource):
         return make_response(jsonify(entries), 200)
     
     def post(self):
+        if not db.session['user_id']: 
+            if not db.session['user_id'] in User.query.filter_by(id=db.session['user_id']):
+                return make_response(jsonify({'error': 'Unauthorized'}, 401))
+            
         data = request.get_json()
 
         try:
@@ -136,7 +138,7 @@ class Entries(Resource):
         db.session.add(new_entry)
         db.session.commit()
 
-        return make_response(new_entry.to_dict(), 201)
+        return make_response({'entry': new_entry.to_dict()}, 201)
     
 api.add_resource(Entries, '/entries')
     
@@ -154,7 +156,7 @@ class EntryByID(Resource):
         db.session.add(entry)
         db.session.commit()
 
-        return make_response(entry.to_dict(), 202)
+        return make_response({'entry': entry.to_dict()}, 202)
     
 api.add_resource(EntryByID, '/entries/<int:id>')
 
@@ -165,6 +167,10 @@ class Stories(Resource):
         return make_response(jsonify(stories), 200)
     
     def post(self):
+        if not db.session['user_id']: 
+            if not db.session['user_id'] in User.query.filter_by(id=db.session['user_id']):
+                return make_response(jsonify({'error': 'Unauthorized'}, 401))
+            
         data = request.get_json()
 
         try:
@@ -178,7 +184,7 @@ class Stories(Resource):
         db.session.add(new_story)
         db.session.commit()
 
-        return make_response(new_story.to_dict(), 201)
+        return make_response({'story': new_story.to_dict()}, 201)
     
 api.add_resource(Stories, '/stories')
     
@@ -196,14 +202,14 @@ class StoryByID(Resource):
         db.session.add(story)
         db.session.commit()
 
-        return make_response(story.to_dict(), 202)
+        return make_response({'story': story.to_dict()}, 202)
     
 api.add_resource(StoryByID, '/stories/<int:id>')
 
 class Login(Resource):
 
     def post(self):
-        user = User.query.filter(User.name == request.get_json['name']).first()
+        user = User.query.filter(User.name == request.get_json(['name'])).first()
         db.session['user.id'] = user.id
         return user.to_dict()
     
@@ -212,7 +218,8 @@ api.add_resource(Login, '/login')
 class CheckSession(Resource):
 
     def get(self):
-        user = User.query.filter(User.id == db.session.get('user_id')).first()
+        # user = User.query.filter(User.id == db.session.get('user_id')).first()
+        user = User.query.filter_by(id=db.session.get('user_id')).first()
         if user:
             return user.to_dict()
         return {'message': '401: Not Authorized'}, 401

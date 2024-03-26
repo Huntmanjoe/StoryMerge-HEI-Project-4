@@ -23,10 +23,11 @@ if __name__ == '__main__':
        Story.query.delete()
 
        print("Creating users...")
-       gibran = User(name='Khalil Gibran', password='1234')
-       hesse = User(name='Hermann Hesse', password='password')
-       melville = User(name='Herman Melville', password='4321')
-       marquez = User(name='Gabriel García Márquez', password='5678')
+       gibran = User(name='Khalil Gibran', password='1234', email='khalil@gmail.com')
+       gibran.bio = 'Lebanese-American writer, poet and visual artist'
+       hesse = User(name='Hermann Hesse', password='password', email='hesse@hotmail.com')
+       melville = User(name='Herman Melville', password='4321', email='melville@melville.com')
+       marquez = User(name='Gabriel García Márquez', password='5678', email='oldemail@aol.com')
        users = [gibran, hesse, melville, marquez]
        db.session.add_all(users)
        db.session.commit()

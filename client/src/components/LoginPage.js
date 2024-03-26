@@ -12,8 +12,22 @@ function LoginPage() {
 
     const handleLoginSubmit = (event) => {
         event.preventDefault();
+        if (isSignUp) {
+            try {
+                fetch('/users', {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json",},
+                    body: JSON.stringify({
+                        "name": {username},
+                        "email": {email},
+                        "password_hash": {password},
+                    })
+                })
+            } catch {console.log("error in creating user!")}
+        }
         login(username);  // Assuming login function updates auth context
         localStorage.setItem('currentUser', JSON.stringify({ username })); // Store user's information
+        // should be able to not use localstorage bc of using cookies
         history.push(`/user/${username}`); // Redirect to user's profile page
     };
 

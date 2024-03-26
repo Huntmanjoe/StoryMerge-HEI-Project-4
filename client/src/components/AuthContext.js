@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -9,8 +9,22 @@ export function useAuth() {
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+    useEffect(() => {
+        fetch("/check_session").then((response) => {
+          if (response.ok) {
+            response.json().then((user) => {setUser(user); setIsLoggedIn(True)});
+          }
+        });
+      }, []);
+
     const login = (username) => {
-        setIsLoggedIn(true);
+        fetch("/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json",},
+            body: JSON.stringify({ username }),
+        })
+        .then(() => setIsLoggedIn(true));
+        // the above will create a cookie in session[user_id] that lets the database know you are logged in as that user
     };
 
     const logout = () => {

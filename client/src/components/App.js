@@ -17,17 +17,6 @@ function App() {
         setStories(prevStories => [...prevStories, newStory]);
     };
 
-    // whoops, handled by authcontext
-    // const [user, setUser] = useState();
-
-    // useEffect(() => {
-    //     fetch('/check_session').then(response => {
-    //         if (response.ok) {
-    //             response.json().then(user => setUser(user));
-    //         }
-    //     });
-    // }, []);
-
     return (
         <AuthProvider> 
             <Router>

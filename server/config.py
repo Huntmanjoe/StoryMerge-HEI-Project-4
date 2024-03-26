@@ -2,6 +2,7 @@
 
 # Remote library imports
 from flask import Flask
+from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api
@@ -23,11 +24,12 @@ metadata = MetaData(naming_convention={
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
 })
 db = SQLAlchemy(metadata=metadata)
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, render_as_batch=True) # added to see if alter table will work
 db.init_app(app)
 
 # Instantiate REST API
 api = Api(app)
+bcrypt = Bcrypt(app)
 
 # Instantiate CORS
 CORS(app)
