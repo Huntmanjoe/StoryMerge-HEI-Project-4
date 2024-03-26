@@ -2,23 +2,51 @@ from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import validates
 
-from config import db, metadata
+from config import db, metadata, bcrypt
 
 #the current setup removes all prompts and entries associated with a user if they delete their acct
 #might make more sense to just mark it as having a deleted acct?
 #might have overdone it on nullable=False foreign keys for similar reasons
 #maybe give User a "deleted" field that will allow their prompts/entries to persist
 
+#as of now, users each have entries and prompts, all of which show a redundant user_id
+#similarly, entries and prompts have a list of stories, which each have a prompt_id 
+
 class User(db.Model, SerializerMixin):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
+    email = db.Column(db.String, unique=True) # will add nullable false to this when done seeding
+    fav_book = db.Column(db.String)
+    bio = db.Column(db.String)
+    #have to use the private version for column
+    _password_hash = db.Column(db.String, nullable=False)
+
+    def __init__(self, name, email, password, fav_book=None, bio=None):
+        # an init method is needed to make sure the hashing is carried out
+        self.name = name
+        self.email = email
+        self.fav_book = fav_book
+        self.bio = bio
+        self.password_hash = password
+
+    @property 
+    def password_hash(self):
+        return self._password_hash
+    
+    @password_hash.setter
+    def password_hash(self, plain_text_password):
+        byte_obj = plain_text_password.encode('utf-8')
+        encrypted_password_object = bcrypt.generate_password_hash(byte_obj)
+        hashed_password_string = encrypted_password_object.decode('utf-8')
+        self._password_hash = hashed_password_string
 
     prompts = db.relationship('Prompt', back_populates='user', cascade='all, delete-orphan')
     entries = db.relationship('Entry', back_populates='user', cascade='all, delete-orphan')
 
-    serialize_rules = ('-prompts.user', '-entries.user')
+    serialize_rules = ('-_password_hash', '-prompts.user', '-entries.user', '-prompts.stories.entries', 
+                       '-prompts.stories.prompt', '-entries.stories.entries', '-entries.stories.prompt')
 
     def __repr__(self):
         return f'<User {self.id}, name {self.name}>'
@@ -84,6 +112,8 @@ class Story(db.Model, SerializerMixin):
 
     prompt = db.relationship('Prompt', back_populates='stories')
     entries = db.relationship('Entry', secondary=story_entries, back_populates='stories')
+
+    serialize_rules = ('-prompt.stories', '-prompt.entries', '-entries.stories', '-entries.prompts')
 
     def __repr__(self):
         return f'<Story {self.id}, prompt ID {self.prompt_id}>'

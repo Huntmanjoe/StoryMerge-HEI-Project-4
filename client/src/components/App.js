@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { AuthProvider } from './AuthContext'; // Make sure the path is correct
 import Navbar from './Navbar';
 import LoginPage from './LoginPage';
 import NewPromptForm from './NewPromptForm';
 import Homepage from './Homepage';
 import NewEntryForm from './NewEntryForm';
 import StoryList from './StoryList';
-import Footer from './Footer'; // Ensure this is imported
+import UserProfile from './UserProfile';
+import Footer from './Footer';
 import StoryPage from './StoryPage'; 
 
 
@@ -18,33 +20,37 @@ function App() {
     };
 
     return (
-        <Router>
-            <div className="site-content"> {/* Wrap your content */}
-                <Navbar />
-                <div className="main-content">
-                    <Switch>
-                        <Route path="/login">
-                            <LoginPage />
-                        </Route>
-                        <Route path="/create-prompt">
-                            <NewPromptForm />
-                        </Route>
-                        <Route path="/new-entry">
-                            <NewEntryForm onAddStory={handleAddStory} />
-                        </Route>
-                        <Route path="/view-stories">
-                            <StoryList />
-                        </Route>
-                        <Route path="/story/:storyId" component={StoryPage} />
+        <AuthProvider> 
+            <Router>
+                <div className="site-content">
+                    <Navbar />
+                    <div className="main-content">
+                        <Switch>
+                            <Route path="/login">
+                                <LoginPage />
+                            </Route>
+                            <Route path="/create-prompt">
+                                <NewPromptForm />
+                            </Route>
+                            <Route path="/new-entry">
+                                <NewEntryForm onAddStory={handleAddStory} />
+                            </Route>
+                            <Route path="/view-stories">
+                                <StoryList stories={stories} />
+                            </Route>
+                            <Route path="/user/:userId">
+                                <UserProfile />
+                            </Route>
+                            <Route path="/story/:storyId" component={StoryPage} />
                         <Route exact path="/">
-                            <Homepage />
-                        </Route>
-                      
-                    </Switch>
+                                <Homepage />
+                            </Route>
+                        </Switch>
+                    </div>
+                    <Footer /> 
                 </div>
-                <Footer /> 
-            </div>
-        </Router>
+            </Router>
+        </AuthProvider>
     );
 }
 
