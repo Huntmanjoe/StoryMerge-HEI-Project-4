@@ -9,7 +9,7 @@ function Homepage() {
                 <div className="welcome-text">
                     <h1>Welcome to StoryMerge!</h1>
                     <p>Explore, contribute, and create interactive stories with our community.</p>
-                    <Link to="/story-list" className="action-button">View Stories</Link>
+                    <Link to="/view-stories" className="action-button">Discover Stories</Link> {/* Updated */}
                 </div>
                 <div className="welcome-image">
                     <img src="/Storypage.jpg" alt="Welcome" />
@@ -24,7 +24,7 @@ function Homepage() {
                 <div className="feature">
                     <h2>Explore</h2>
                     <p>Dive into a variety of stories created by our community.</p>
-                    <Link to="/story-list" className="feature-link">Discover Stories</Link>
+                    <Link to="/view-stories" className="feature-link">Discover Stories</Link> {/* Updated for consistency */}
                 </div>
                 <div className="feature">
                     <h2>Connect</h2>
@@ -41,5 +41,6 @@ function Homepage() {
 }
 
 export default Homepage;
+
 
 
