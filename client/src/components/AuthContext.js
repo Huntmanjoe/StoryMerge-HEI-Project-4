@@ -12,16 +12,18 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         fetch("/check_session").then((response) => {
           if (response.ok) {
-            response.json().then((user) => {setUser(user); setIsLoggedIn(True)});
+            response.json().then((user) => {
+                // setUser(user); 
+                setIsLoggedIn(true)});
           }
         });
       }, []);
 
-    const login = (username) => {
+    const login = (name, password, plaintext=true) => {
         fetch("/login", {
             method: "POST",
             headers: {"Content-Type": "application/json",},
-            body: JSON.stringify({ username }),
+            body: JSON.stringify( {name, password, plaintext} ),
         })
         .then(() => setIsLoggedIn(true));
         // the above will create a cookie in session[user_id] that lets the database know you are logged in as that user
