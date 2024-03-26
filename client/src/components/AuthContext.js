@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         fetch("/check_session").then((response) => {
           if (response.ok) {
-            response.json().then((user) => {setUser(user); setIsLoggedIn(True)});
+            // response.json().then((user) => {setUser(user); setIsLoggedIn(True)});
           }
         });
       }, []);
