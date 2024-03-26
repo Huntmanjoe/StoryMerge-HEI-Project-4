@@ -1,6 +1,7 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import validates
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from config import db, metadata, bcrypt
 
@@ -31,7 +32,7 @@ class User(db.Model, SerializerMixin):
         self.bio = bio
         self.password_hash = password
 
-    @property 
+    @hybrid_property 
     def password_hash(self):
         return self._password_hash
     
@@ -42,11 +43,17 @@ class User(db.Model, SerializerMixin):
         hashed_password_string = encrypted_password_object.decode('utf-8')
         self._password_hash = hashed_password_string
 
+    def authenticate(self, plaintext_password):
+        # return bcrypt.generate_password_hash(plaintext_password.encode('utf-8')).decode('utf-8') == self.password_hash
+        return bcrypt.check_password_hash(self.password_hash, plaintext_password)
+
     prompts = db.relationship('Prompt', back_populates='user', cascade='all, delete-orphan')
     entries = db.relationship('Entry', back_populates='user', cascade='all, delete-orphan')
 
-    serialize_rules = ('-_password_hash', '-prompts.user', '-entries.user', '-prompts.stories.entries', 
-                       '-prompts.stories.prompt', '-entries.stories.entries', '-entries.stories.prompt')
+    serialize_rules = (
+                        # '-_password_hash', have to keep in rn bc login needs it
+                        '-prompts.user', '-entries.user', '-prompts.stories.entries', 
+                        '-prompts.stories.prompt', '-entries.stories.entries', '-entries.stories.prompt')
 
     def __repr__(self):
         return f'<User {self.id}, name {self.name}>'
