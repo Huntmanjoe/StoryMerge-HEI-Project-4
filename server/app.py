@@ -3,7 +3,7 @@
 # Standard library imports
 
 # Remote library imports
-from flask import make_response, jsonify, request
+from flask import make_response, jsonify, request, session
 from flask_restful import Resource
 
 # Local imports
@@ -24,6 +24,7 @@ class Users(Resource):
     
     def post(self):
         data = request.get_json()
+        # return make_response(data, 200)
 
         try:
             new_user = User(
@@ -209,9 +210,28 @@ api.add_resource(StoryByID, '/stories/<int:id>')
 class Login(Resource):
 
     def post(self):
-        user = User.query.filter(User.name == request.get_json(['name'])).first()
-        db.session['user.id'] = user.id
-        return user.to_dict()
+        # this takes "{user:{fields of user as keys and values as values}}"
+        # return make_response(request.get_json(), 200)
+        # user = User.query.filter(User.name == request.get_json()['username']).first()
+        if request.get_json()['plaintext']:
+            # return make_response('plaintext', 200)
+            user = User.query.filter_by(name = request.get_json()['name']).first()
+            password = request.get_json()['password']
+            if user.authenticate(password):
+                session['user.id'] = user.id
+                return make_response(user.to_dict(), 200)
+            return make_response({'error': 'Invalid username or password'}, 401)
+        else:
+            # user = User.query.filter_by(name = request.get_json()['user']['name']).first()
+            user = User.query.filter_by(name = request.get_json()['name']).first()
+            # password = User.query.filter_by(id = request.get_json()['user']['password_hash']).first()
+            # password = request.get_json(['user']['password'])
+            password_hash = request.get_json()['password']
+            # if user.authenticate(password):
+            if password_hash == user._password_hash:
+                session['user.id'] = user.id
+                return make_response(user.to_dict(), 200)
+            return make_response({'error': 'Invalid username or password'}, 401)
     
 api.add_resource(Login, '/login')
 
@@ -229,7 +249,7 @@ api.add_resource(CheckSession, '/check_session')
 class Logout(Resource):
 
     def delete(self):
-        db.session['user_id'] = None
+        session['user_id'] = None
         return {'message': '204: No Content'}, 204
     
 api.add_resource(Logout, '/logout')

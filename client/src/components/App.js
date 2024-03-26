@@ -9,6 +9,8 @@ import NewEntryForm from './NewEntryForm';
 import StoryList from './StoryList';
 import UserProfile from './UserProfile';
 import Footer from './Footer';
+import StoryPage from './StoryPage'; 
+
 
 function App() {
     const [stories, setStories] = useState([]);
@@ -39,7 +41,8 @@ function App() {
                             <Route path="/user/:userId">
                                 <UserProfile />
                             </Route>
-                            <Route exact path="/">
+                            <Route path="/story/:storyId" component={StoryPage} />
+                        <Route exact path="/">
                                 <Homepage />
                             </Route>
                         </Switch>
