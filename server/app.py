@@ -52,6 +52,7 @@ class UserByID(Resource):
         error = {"error": "User not found"}
         return make_response(jsonify(error), 404)
 
+    # maybe should make require a cookie with the right id
     def patch(self, id):
         user = User.query.filter_by(id=id).first()
         for attr in request.json:
@@ -193,7 +194,7 @@ class StoryByID(Resource):
 
     def get(self, id):
         story = Story.query.filter_by(id=id).first()
-        return make_response(jsonify(story), 200)
+        return make_response(jsonify(story.to_dict()), 200)
 
     def patch(self, id):
         story = Story.query.filter_by(id=id).first()
