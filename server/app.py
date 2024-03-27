@@ -218,7 +218,7 @@ class Login(Resource):
             user = User.query.filter_by(name = request.get_json()['name']).first()
             password = request.get_json()['password']
             if user.authenticate(password):
-                session['user.id'] = user.id
+                session['user_id'] = user.id
                 return make_response(user.to_dict(), 200)
             return make_response({'error': 'Invalid username or password'}, 401)
         else:
@@ -229,20 +229,38 @@ class Login(Resource):
             password_hash = request.get_json()['password']
             # if user.authenticate(password):
             if password_hash == user._password_hash:
-                session['user.id'] = user.id
+                session['user_id'] = user.id
                 return make_response(user.to_dict(), 200)
             return make_response({'error': 'Invalid username or password'}, 401)
     
 api.add_resource(Login, '/login')
 
+class checkProfile(Resource):
+    # this will first see if the user exists, then see if it is the current user
+
+    def post(self):
+        # having <int:id> in the path didnt work so I'm using the request body
+        username = request.json.get('username')
+        user = User.query.filter_by(name=username).first()
+        if not user:
+            return make_response({'exists': False, 'is_own': False}, 404)
+        if 'user_id' in session:
+            # could probably use session.get instead of two if statements
+            if session['user_id'] == user.id:
+                return make_response({'exists': True, 'is_own': True, 'user': user.to_dict()}, 200)
+        return make_response({'exists': True, 'is_own': False, 'user': user.to_dict()}, 200)
+    
+api.add_resource(checkProfile, '/check_profile')
+
 class CheckSession(Resource):
 
     def get(self):
         # user = User.query.filter(User.id == db.session.get('user_id')).first()
-        user = User.query.filter_by(id=db.session.get('user_id')).first()
+        # return session.get('user_id')
+        user = User.query.filter_by(id=session.get('user_id')).first()
         if user:
             return user.to_dict()
-        return {'message': '401: Not Authorized'}, 401
+        return make_response({'message': '401: Not Authorized'}, 401)
     
 api.add_resource(CheckSession, '/check_session')
 

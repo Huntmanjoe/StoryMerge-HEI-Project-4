@@ -1,23 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 function UserProfile() {
+    const { username } = useParams();
     const { logout } = useAuth();
     const history = useHistory();
     const [user, setUser] = useState({ name: '', bio: '', favoriteBook: '', imageUrl: '' });
+    const [validProfile, setValidProfile] = useState(true);
+    const [ownProfile, setOwnProfile] = useState(false);
 
     useEffect(() => {
-        const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (loggedInUser) {
-            setUser({
-                name: loggedInUser.username,
-                bio: 'Default bio',
-                favoriteBook: 'Default book',
-                imageUrl: 'https://via.placeholder.com/150'
-            });
-        }
+        // okay this and check_session are running twice on page load but at least they work
+        fetch('/check_profile', {
+            method: "POST",
+            headers: {"Content-Type": "application/json",},
+            body: JSON.stringify( { username } ),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.exists == false) {setValidProfile(false);} 
+            else {
+                if (data.isOwn == true) {setOwnProfile(true)}
+                setUser({
+                    name: data.user.name,
+                    bio: data.user.bio ? data.user.bio : "Waiting to be told!",
+                    favoriteBook: data.user.fav_book ? data.user.fav_book : 'None Selected',
+                    imageUrl: 'https://via.placeholder.com/150' // unimplemented
+                })
+            }
+        });
     }, []);
+    // useEffect(() => {
+    //     const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
+    //     if (loggedInUser) {
+    //         setUser({
+    //             name: loggedInUser.username,
+    //             bio: 'Default bio',
+    //             favoriteBook: 'Default book',
+    //             imageUrl: 'https://via.placeholder.com/150'
+    //         });
+    //     }
+    // }, []);
 
     const handleLogout = () => {
         logout();
@@ -34,7 +58,8 @@ function UserProfile() {
         }
     };
 
-    if (!user.name) return <div>Loading...</div>;
+    if (!validProfile) return <div style={styles.container}><p>404: User not found</p></div>
+    if (!user.name) return <div style={styles.container}><p>Loading...</p></div>;
 
     return (
         <div style={styles.container}>

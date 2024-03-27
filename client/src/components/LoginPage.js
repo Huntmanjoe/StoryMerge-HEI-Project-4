@@ -10,8 +10,13 @@ function LoginPage() {
     const { login } = useAuth();
     const history = useHistory();
 
+    const [failedSignup, setFailedSignup] = useState(false);
+    const [failedLogin, setFailedLogin] = useState(false);
+
     const handleLoginSubmit = (event) => {
         event.preventDefault();
+        setFailedSignup(false);
+        setFailedLogin(false);
         if (isSignUp) {
             fetch('/users', {
                 method: "POST",
@@ -22,14 +27,42 @@ function LoginPage() {
                     "password": password,
                 })
             })
-            .then(r => r.json())
-            .then(user => login(user['user']['name'], user['user']['_password_hash'], false));
+            .then(r => {if (r.ok) {
+                r.json()
+                .then(user => {
+                    // we don't really need all this and for login to have a plaintext arg if i just the username and password args here
+                    // that would also be way more secure. will do soon
+                    login(user['user']['name'], user['user']['_password_hash'], false);
+                    history.push(`/user/${username}`);
+                })
+            } else {
+                {setFailedSignup(true);}
+            }})
+        } else {
+            const plaintext = true
+            const name = username
+            fetch("/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json",},
+                body: JSON.stringify( {name, password, plaintext} ),
+            })
+            .then(r => {if (r.ok) {
+                    history.push(`/user/${username}`);
+                } else {setFailedLogin(true)}
+                })
+            // i kept trying to use login from auth but i can't access the promise object asynchronously that way
+            // login(username, password)
+            // .then(r => console.log(r))
+            // .then(r => {if (r.ok) {
+            //     history.push(`/user/${username}`);
+            // } else {setFailedLogin(true)}
+            // })
         }
-        else {login(username, password);}
+
           // Assuming login function updates auth context
         localStorage.setItem('currentUser', JSON.stringify({ username })); // Store user's information
         // should be able to not use localstorage bc of using cookies
-        history.push(`/user/${username}`); // Redirect to user's profile page
+        // history.push(`/user/${username}`); // Redirect to user's profile page
     };
 
     const toggleForm = () => {
@@ -109,6 +142,8 @@ function LoginPage() {
                 <button type="submit" style={styles.button}>
                     {isSignUp ? 'Sign Up' : 'Login'}
                 </button>
+                <p style={{ textAlign: 'center' }}>{failedSignup ? "Username or email already registered!" : ""}</p>
+                <p style={{ textAlign: 'center' }}>{failedLogin ? "Incorrect username or password!" : ""}</p>
                 <p style={{ textAlign: 'center' }}>
                     {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
                     <span 

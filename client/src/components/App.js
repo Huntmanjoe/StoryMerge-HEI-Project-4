@@ -38,7 +38,8 @@ function App() {
                             <Route path="/view-stories">
                                 <StoryList stories={stories} />
                             </Route>
-                            <Route path="/user/:userId">
+                            <Route path="/user/:username">
+                                {/* changed from user id to name */}
                                 <UserProfile />
                             </Route>
                             <Route path="/story/:storyId" component={StoryPage} />

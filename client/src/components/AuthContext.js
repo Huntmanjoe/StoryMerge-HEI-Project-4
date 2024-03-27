@@ -25,9 +25,12 @@ export const AuthProvider = ({ children }) => {
             headers: {"Content-Type": "application/json",},
             body: JSON.stringify( {name, password, plaintext} ),
         })
-        .then(() => setIsLoggedIn(true));
-        // the above will create a cookie in session[user_id] that lets the database know you are logged in as that user
+        // .then(r => { if (r.ok) {setIsLoggedIn(true); return true
+        // } else {console.log(`false: ${r.json()}`);return false}
+    // });
+        .then(r => {return r})
     };
+        // the above will create a cookie in session[user_id] that lets the database know you are logged in as that user
 
     const logout = () => {
         setIsLoggedIn(false);
