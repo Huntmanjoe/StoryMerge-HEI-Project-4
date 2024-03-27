@@ -66,6 +66,7 @@ function StoryList() {
                         <h3 style={styles.storyTitle}>{story.title}</h3>
                         <p style={styles.storyAuthor}>
                             by <Link to={`/user/${story.authorId}`} style={styles.authorLink}
+                            // link should use author name not id
                                 onMouseEnter={(e) => e.target.style.color = '#3CB371'}
                                 onMouseLeave={(e) => e.target.style.color = styles.authorLink.color}>
                                 {story.author}

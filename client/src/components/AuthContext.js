@@ -33,7 +33,14 @@ export const AuthProvider = ({ children }) => {
         // the above will create a cookie in session[user_id] that lets the database know you are logged in as that user
 
     const logout = () => {
-        setIsLoggedIn(false);
+        fetch("/logout", {
+            method: "DELETE",
+            headers: {"Content-Type": "application/json",},
+        })
+        .then(r => {if (r.ok) {
+            setIsLoggedIn(false);
+            console.log('delete successful')
+        } else {console.log('delete failed')}});
     };
 
     const value = {
