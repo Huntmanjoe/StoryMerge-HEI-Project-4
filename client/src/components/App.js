@@ -11,7 +11,6 @@ import UserProfile from './UserProfile';
 import Footer from './Footer';
 import StoryPage from './StoryPage'; 
 
-
 function App() {
     const [stories, setStories] = useState([]);
 
@@ -42,7 +41,7 @@ function App() {
                                 {/* changed from user id to name */}
                                 <UserProfile />
                             </Route>
-                            <Route path="/story/:storyId" component={StoryPage} />
+                            <Route path="/story/:storyID" component={StoryPage} />
                         <Route exact path="/">
                                 <Homepage />
                             </Route>

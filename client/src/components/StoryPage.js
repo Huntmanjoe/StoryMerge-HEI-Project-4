@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
 
 const StoryPage = () => {
+  const { storyID } = useParams()
+  console.log(storyID)
   const [entry, setEntry] = useState('');
   const [entries, setEntries] = useState([
       { id: 1, username: 'User1', content: 'This is an amazing beginning to the story.', children: [] },
@@ -10,120 +12,17 @@ const StoryPage = () => {
   const [activeInputId, setActiveInputId] = useState(null);
   const [newEntryContent, setNewEntryContent] = useState('');
   const [expandedEntries, setExpandedEntries] = useState(new Set());
+  const [storyData, setStoryData] = useState(null);
 
+  useEffect(() => {
+    fetch(`/stories/${storyID}`, {headers: {"Content-Type": "application/json",},})
+    .then(r => {if (r.ok) {
+      r.json()
+      .then(data => {console.log(data); setStoryData(data); setEntries(data.entries)})
+    }})
+  }, []);
 
-
-  const storyData = {
-    title: "The Adventures of Sherlock Holmes",
-    author: "Arthur Conan Doyle",
-    originalPromptAuthor: "John H. Watson",
-    content: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-      Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
-      ut aliquip ex ea commodo consequat. 
-      
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-      Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
-      ut aliquip ex ea commodo consequat.
-      
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-      Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
-      ut aliquip ex ea commodo consequat.
-      
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-      Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
-      ut aliquip ex ea commodo consequat.
-      
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-      Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
-      ut aliquip ex ea commodo consequat.Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-      Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
-      ut aliquip ex ea commodo consequat.Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-      Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`
-
-  };
-
-  const pageStyles = {
-    container: {
-      maxWidth: '800px',
-      margin: 'auto',
-      padding: '20px',
-      paddingBottom: '80px',
-      fontFamily: 'Georgia, serif',
-      lineHeight: '1.6',
-      color: '#333'
-    },
-    title: {
-      fontSize: '36px',
-      fontWeight: 'bold',
-      marginBottom: '10px'
-    },
-    author: {
-      fontSize: '24px',
-      fontWeight: 'normal',
-      color: '#555',
-      marginBottom: '20px'
-    },
-    originalPrompt: {
-      fontSize: '18px',
-      fontStyle: 'italic',
-      marginBottom: '20px'
-    },
-    content: {
-      fontSize: '20px',
-      borderTop: '1px solid #eee',
-      paddingTop: '20px'
-    },
-    submitBar: {
-        borderTop: '2px solid #333',
-        paddingTop: '20px',
-        marginTop: '20px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      },
-      submitButton: {
-        padding: '10px 20px',
-        backgroundColor: '#007BFF',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-      },
-      entryInput: {
-        padding: '10px',
-        width: 'calc(100% - 150px)', 
-        marginRight: '10px',
-      },
-      entriesContainer: {
-        marginTop: '20px',
-      },
-      entry: {
-        backgroundColor: '#f7f7f7',
-        padding: '10px',
-        borderRadius: '5px',
-        marginBottom: '10px',
-      },
-      entryActions: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        marginTop: '10px',
-      },
-      actionButton: {
-        marginLeft: '10px',
-        padding: '5px 10px',
-        backgroundColor: '#007BFF',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-      },
-    };
+  
 
 
     const addReplyToEntry = (entries, parentId, reply) => {
@@ -214,15 +113,16 @@ const renderEntries = (entryList, parentId = null) => {
 };
 
   console.log('activeInputId:', activeInputId); 
-
-
+  console.log('test:', entries[0].content);
+  if (!storyData) return <div style={{...pageStyles.container, textAlign: 'center'}}>Oops! There is no story here</div>
+  
   return (
     <div style={pageStyles.container}>
       <h1 style={pageStyles.title}>{storyData.title}</h1>
-      <h2 style={pageStyles.author}>by {storyData.author}</h2>
-      <p style={pageStyles.originalPrompt}>Original prompt by {storyData.originalPromptAuthor}</p>
+      <h2 style={pageStyles.author}>by {storyData.user.name}</h2>
+      <p style={pageStyles.originalPrompt}>Original prompt by {storyData.prompt.user.name}</p>
       <div style={pageStyles.content}>
-        {storyData.content}
+        {storyData.prompt.content}
       </div>
       <div style={pageStyles.entriesContainer}>
         {renderEntries(entries)}
@@ -246,5 +146,82 @@ const renderEntries = (entryList, parentId = null) => {
       </div>
     </div>
   );
-            }
+}
 export default StoryPage;
+
+const pageStyles = {
+  container: {
+    maxWidth: '800px',
+    margin: 'auto',
+    padding: '20px',
+    paddingBottom: '80px',
+    fontFamily: 'Georgia, serif',
+    lineHeight: '1.6',
+    color: '#333'
+  },
+  title: {
+    fontSize: '36px',
+    fontWeight: 'bold',
+    marginBottom: '10px'
+  },
+  author: {
+    fontSize: '24px',
+    fontWeight: 'normal',
+    color: '#555',
+    marginBottom: '20px'
+  },
+  originalPrompt: {
+    fontSize: '18px',
+    fontStyle: 'italic',
+    marginBottom: '20px'
+  },
+  content: {
+    fontSize: '20px',
+    borderTop: '1px solid #eee',
+    paddingTop: '20px'
+  },
+  submitBar: {
+      borderTop: '2px solid #333',
+      paddingTop: '20px',
+      marginTop: '20px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    submitButton: {
+      padding: '10px 20px',
+      backgroundColor: '#007BFF',
+      color: 'white',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+    },
+    entryInput: {
+      padding: '10px',
+      width: 'calc(100% - 150px)', 
+      marginRight: '10px',
+    },
+    entriesContainer: {
+      marginTop: '20px',
+    },
+    entry: {
+      backgroundColor: '#f7f7f7',
+      padding: '10px',
+      borderRadius: '5px',
+      marginBottom: '10px',
+    },
+    entryActions: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      marginTop: '10px',
+    },
+    actionButton: {
+      marginLeft: '10px',
+      padding: '5px 10px',
+      backgroundColor: '#007BFF',
+      color: 'white',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+    },
+  };
