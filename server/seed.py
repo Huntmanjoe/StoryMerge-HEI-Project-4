@@ -16,11 +16,12 @@ if __name__ == '__main__':
        print("Starting seed...")
        print("Deleting data...")
        db.session.query(story_entries).delete()
-       db.session.commit()
        User.query.delete()
        Prompt.query.delete()
        Entry.query.delete()
        Story.query.delete()
+       db.session.commit()
+
 
        print("Creating users...")
        gibran = User(name='Khalil Gibran', password='1234', email='khalil@gmail.com')
@@ -28,7 +29,8 @@ if __name__ == '__main__':
        hesse = User(name='Hermann Hesse', password='password', email='hesse@hotmail.com')
        melville = User(name='Herman Melville', password='4321', email='melville@melville.com')
        marquez = User(name='Gabriel García Márquez', password='5678', email='oldemail@aol.com')
-       users = [gibran, hesse, melville, marquez]
+       asdf = User(name='asdf', password='asdf', email='adsf@adsf')
+       users = [gibran, hesse, melville, marquez, asdf]
        db.session.add_all(users)
        db.session.commit()
 
@@ -91,11 +93,11 @@ conspicuous outsider in the eyes of the natives.""",
        db.session.add_all(entries)
 
        print('Creating stories...')
-       p_orig = Story(prompt=prophet)
+       p_orig = Story(prompt=prophet, title='A First Crack at the Prophet', user_id=gibran.id)
        p_orig.entries.append(p1)
        p_orig.entries.append(p2)
        #could do appending in either direction (appending stories to entries)
-       n_orig = Story(prompt=narcissus)
+       n_orig = Story(prompt=narcissus, title='Take one of N&G', user_id=hesse.id)
        n_orig.entries.append(n1)
        stories = [p_orig, n_orig]
        db.session.add_all(stories)

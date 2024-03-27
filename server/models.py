@@ -49,11 +49,13 @@ class User(db.Model, SerializerMixin):
 
     prompts = db.relationship('Prompt', back_populates='user', cascade='all, delete-orphan')
     entries = db.relationship('Entry', back_populates='user', cascade='all, delete-orphan')
+    stories = db.relationship('Story', back_populates='user')
 
     serialize_rules = (
                         # '-_password_hash', have to keep in rn bc login needs it
                         '-prompts.user', '-entries.user', '-prompts.stories.entries', 
-                        '-prompts.stories.prompt', '-entries.stories.entries', '-entries.stories.prompt')
+                        '-prompts.stories.prompt', '-entries.stories.entries', '-entries.stories.prompt',
+                        '-stories.user', '-stories.entries', '-stories.prompt')
 
     def __repr__(self):
         return f'<User {self.id}, name {self.name}>'
@@ -115,12 +117,16 @@ class Story(db.Model, SerializerMixin):
     __tablename__ = "stories"
 
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     prompt_id = db.Column(db.Integer, db.ForeignKey('prompts.id'), nullable=False)
 
+    user = db.relationship('User', back_populates='stories')
     prompt = db.relationship('Prompt', back_populates='stories')
     entries = db.relationship('Entry', secondary=story_entries, back_populates='stories')
 
-    serialize_rules = ('-prompt.stories', '-prompt.entries', '-entries.stories', '-entries.prompts')
+    serialize_rules = ('-prompt.stories', '-prompt.entries', '-entries.stories', '-entries.prompts',
+                       '-user.stories', '-user.prompts', '-user.entries')
 
     def __repr__(self):
         return f'<Story {self.id}, prompt ID {self.prompt_id}>'
