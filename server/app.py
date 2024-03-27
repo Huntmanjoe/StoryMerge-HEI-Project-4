@@ -99,7 +99,7 @@ class PromptByID(Resource):
 
     def get(self, id):
         prompt = Prompt.query.filter_by(id=id).first()
-        return make_response(jsonify(prompt), 200)
+        return make_response(prompt.to_dict(), 200)
 
     def patch(self, id):
         # if not db.session['user_id']: 
@@ -148,7 +148,7 @@ class EntryByID(Resource):
 
     def get(self, id):
         entry = Entry.query.filter_by(id=id).first()
-        return make_response(jsonify(entry), 200)
+        return make_response(entry.to_dict(), 200)
 
     def patch(self, id):
         entry = Entry.query.filter_by(id=id).first()

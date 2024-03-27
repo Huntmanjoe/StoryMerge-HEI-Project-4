@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
 
 const StoryPage = () => {
-  const { storyID } = useParams()
-  console.log(storyID)
+  const { storyID } = useParams();
+  const [allPromptStories, setAllPromptStories] = useState(null);
   const [entry, setEntry] = useState('');
-  const [entries, setEntries] = useState([
+  const [entries, setEntries] = useState([ //sample entries
       { id: 1, username: 'User1', content: 'This is an amazing beginning to the story.', children: [] },
       { id: 2, username: 'User2', content: 'The plot thickens as the mystery deepens.', children: [] },
   ]);
@@ -15,15 +15,50 @@ const StoryPage = () => {
   const [storyData, setStoryData] = useState(null);
 
   useEffect(() => {
+    // maybe the right way to do it should be to not refetch on a new entry but update db and state ?
     fetch(`/stories/${storyID}`, {headers: {"Content-Type": "application/json",},})
     .then(r => {if (r.ok) {
       r.json()
-      .then(data => {console.log(data); setStoryData(data); setEntries(data.entries)})
-    }})
+      .then(data => {
+        console.log(data); 
+        setStoryData(data); 
+        setEntries(data.entries);
+        fetch(`/prompts/${data.prompt.id}`)
+        .then(r => {if (r.ok) {
+          r.json()
+          .then(promptData => {
+            console.log('prompt data stories: ', promptData.stories)
+            setAllPromptStories(promptData.stories)
+            // this is so sloww haha
+            // make sure to use the response data and not the states here
+            for (let [entryI, entry] of entries.entries()) {
+              if (promptData.stories) {
+                for (const story of promptData.stories) {
+                  if (story.id !== data.id) {
+                    for (let [storyEntryI, storyEntry] of story.entries.entries()) {
+                      if (storyEntry.id === entry.id && story.entries[storyEntryI+1] !== entries[entryI+1]) {
+                        const newChildEntry = story.entries[storyEntryI+1];
+                        const entryIndex = entries.findIndex(e => e.id === entry.id);
+                        setEntries(prevEntries => {
+                          const updatedEntries = [...prevEntries];
+                          const existingChildren = updatedEntries[entryIndex].children || []; // in case there are no children yet
+                          updatedEntries[entryIndex] = {
+                            ...updatedEntries[entryIndex],
+                            children: [...existingChildren, newChildEntry]
+                          };
+                          return updatedEntries;
+                        });
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          })
+        }})
+      })
+    }});
   }, []);
-
-  
-
 
     const addReplyToEntry = (entries, parentId, reply) => {
       return entries.map(entry => {
@@ -73,7 +108,8 @@ const StoryPage = () => {
 const renderEntries = (entryList, parentId = null) => {
   return entryList.map((entryData) => (
     <div key={entryData.id} style={parentId ? { ...pageStyles.entry, backgroundColor: '#e9e9e9', marginLeft: '20px' } : pageStyles.entry}>
-      <strong>{entryData.username}:</strong> {entryData.content}
+      <strong>{entryData.user.name}:</strong> 
+      {entryData.content.split("\n").map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       <div style={pageStyles.entryActions}>
         <button
           style={pageStyles.actionButton}
@@ -113,7 +149,7 @@ const renderEntries = (entryList, parentId = null) => {
 };
 
   console.log('activeInputId:', activeInputId); 
-  console.log('test:', entries[0].content);
+
   if (!storyData) return <div style={{...pageStyles.container, textAlign: 'center'}}>Oops! There is no story here</div>
   
   return (
