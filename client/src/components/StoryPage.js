@@ -17,6 +17,9 @@ const StoryPage = () => {
   const [expandedEntries, setExpandedEntries] = useState(new Set());
   const [storyData, setStoryData] = useState(null);
 
+  // still need to check that sub-entry has no children so a whole story copy 
+  // isn't made and that story is instead continued
+
   useEffect(() => {
     // maybe the right way to do it should be to not refetch on a new entry but update db and state ?
     fetch(`/stories/${storyID}`, {headers: {"Content-Type": "application/json",},})
@@ -35,19 +38,19 @@ const StoryPage = () => {
             setAllPromptStories(promptData.stories)
             // this is so sloww haha
             // make sure to use the response data and not the states here
-            for (let [entryI, entry] of entries.entries()) {
+            for (let [entryI, entry] of data.entries.entries()) {
               if (promptData.stories) {
                 for (const story of promptData.stories) {
                   if (story.id !== data.id) {
                     for (let [storyEntryI, storyEntry] of story.entries.entries()) {
                       if (storyEntry.id === entry.id && story.entries[storyEntryI+1] !== entries[entryI+1]) {
                         const newChildEntry = story.entries[storyEntryI+1];
-                        const entryIndex = entries.findIndex(e => e.id === entry.id);
+                        // const entryIndex = entries.findIndex(e => e.id === entry.id);
                         setEntries(prevEntries => {
                           const updatedEntries = [...prevEntries];
-                          const existingChildren = updatedEntries[entryIndex].children || []; // in case there are no children yet
-                          updatedEntries[entryIndex] = {
-                            ...updatedEntries[entryIndex],
+                          const existingChildren = updatedEntries[entryI].children || []; // in case there are no children yet
+                          updatedEntries[entryI] = {
+                            ...updatedEntries[entryI],
                             children: [...existingChildren, newChildEntry]
                           };
                           return updatedEntries;
@@ -64,11 +67,21 @@ const StoryPage = () => {
     }});
   }, []);
 
+    // const addReplyToEntry = (entries, parentId, reply) => {
+    //   return entries.map(entry => {
+    //     if (entry.id === parentId) {
+    //       return { ...entry, children: [...entry.children, reply] };
+    //     } else if (entry.children.length > 0) {
+    //       return { ...entry, children: addReplyToEntry(entry.children, parentId, reply) };
+    //     }
+    //     return entry;
+    //   });
+    // };
     const addReplyToEntry = (entries, parentId, reply) => {
       return entries.map(entry => {
         if (entry.id === parentId) {
-          return { ...entry, children: [...entry.children, reply] };
-        } else if (entry.children.length > 0) {
+          return { ...entry, children: [...(entry.children || []), reply] };
+        } else if (entry.children && entry.children.length > 0) {
           return { ...entry, children: addReplyToEntry(entry.children, parentId, reply) };
         }
         return entry;
@@ -94,9 +107,41 @@ const StoryPage = () => {
         // setEntries(prevEntries => [...prevEntries, newEntry]);
         setEntry('');
       } else {
-        const newReply = { id: Date.now(), username: 'PlaceholderUser', content: newEntryContent, children: [] };
-        const updatedEntries = addReplyToEntry(entries, activeInputId, newReply);
-        setEntries(updatedEntries);
+        // const newReply = { id: Date.now(), username: 'PlaceholderUser', content: newEntryContent, children: [] };
+        // const updatedEntries = addReplyToEntry(entries, activeInputId, newReply);
+        fetch('/stories', {
+          method: "POST",
+          headers: {"Content-Type": "application/json",},
+          body: JSON.stringify({
+            'copy': true,
+            'diverged': activeInputId,
+            'orig_id': storyData.id,
+            'title': 'placeholder title',
+            'prompt_id': storyData.prompt.id,
+          })
+        })
+        .then(r => {if (r.ok) {
+          r.json()
+          .then(newStory => {
+            fetch('/entries', {
+              method: "POST",
+              headers: {"Content-Type": "application/json",},
+              body: JSON.stringify({
+                'content': newEntryContent,
+                'story_id': newStory.story.id
+              })
+            })
+            .then(r => {if (r.ok) {
+              r.json()
+              .then(newEntryData => {
+                const updatedEntries = addReplyToEntry(entries, activeInputId, newEntryData.entry);
+                setEntries(updatedEntries)
+              })
+            }})
+          })
+        }})
+        // const updatedEntries = addReplyToEntry(entries, activeInputId, 'ASDF');
+        // setEntries(updatedEntries);
         setNewEntryContent('');
         setActiveInputId(null);
         setExpandedEntries(prev => new Set(prev).add(activeInputId));

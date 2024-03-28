@@ -16,6 +16,8 @@ from models import User, Prompt, Entry, Story, story_entries
 # def check_if_logged_in():
 #     if not db.session['user_id'] and request.endpoint
 
+# there is a lot of returning {key: obj.to_dict} when just obj.to_dict would suffice
+
 class Users(Resource):
 
     def get(self):
@@ -171,14 +173,31 @@ class Stories(Resource):
         return make_response(jsonify(stories), 200)
     
     def post(self):
-        if not db.session['user_id']: 
-            if not db.session['user_id'] in User.query.filter_by(id=db.session['user_id']):
+        if not session['user_id']: 
+            if not session['user_id'] in User.query.filter_by(id=db.session['user_id']):
                 return make_response(jsonify({'error': 'Unauthorized'}, 401))
             
         data = request.get_json()
 
+        if data['copy'] == True:
+            orig = Story.query.filter_by(id=data['orig_id']).first()
+            diverged = data['diverged']
+            new_story = Story(
+                title = data['title'],
+                user_id = session['user_id'], #logged in
+                prompt_id = orig.id,
+                entries = orig.entries[:diverged]
+            )
+
+            db.session.add(new_story)
+            db.session.commit()
+
+            return make_response({'story': new_story.to_dict()}, 201)
+
         try:
             new_story = Story(
+                title = data['title'],
+                user_id = session['user_id'], #logged in
                 prompt_id = data['prompt_id']
             )
         except:
