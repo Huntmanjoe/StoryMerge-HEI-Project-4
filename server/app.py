@@ -179,30 +179,31 @@ class Stories(Resource):
             
         data = request.get_json()
 
-        if data['copy'] == True:
-            orig = Story.query.filter_by(id=data['orig_id']).first()
-            diverged = data['diverged']
-            new_story = Story(
-                title = data['title'],
-                user_id = session['user_id'], #logged in
-                prompt_id = orig.id,
-                entries = orig.entries[:diverged]
-            )
+        if data.get('copy'):
+            if data['copy'] == True:
+                orig = Story.query.filter_by(id=data['orig_id']).first()
+                diverged = data['diverged']
+                new_story = Story(
+                    title = data['title'],
+                    user_id = session['user_id'], #logged in
+                    prompt_id = orig.id,
+                    entries = orig.entries[:diverged]
+                )
 
-            db.session.add(new_story)
-            db.session.commit()
+                db.session.add(new_story)
+                db.session.commit()
 
-            return make_response({'story': new_story.to_dict()}, 201)
+                return make_response({'story': new_story.to_dict()}, 201)
 
-        try:
-            new_story = Story(
-                title = data['title'],
-                user_id = session['user_id'], #logged in
-                prompt_id = data['prompt_id']
-            )
-        except:
-            error = {"errors": ["validation errors"]}
-            return make_response(jsonify(error), 400)
+        # try:
+        new_story = Story(
+            title = data['title'],
+            user_id = session['user_id'], #logged in
+            prompt_id = data['prompt_id']
+        )
+        # except:
+        #     error = {"errors": ["validation errors"]}
+        #     return make_response(jsonify(error), 400)
         
         db.session.add(new_story)
         db.session.commit()

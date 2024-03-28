@@ -27,33 +27,48 @@ function PromptsList() {
 
     const handleEntrySubmit = (promptId) => {
         const payload = {
-            promptId: promptId,
-            content: entryContent,
+            prompt_id: promptId,
+            title: 'placeholder title'
+            // content: entryContent,
         };
-        fetch('http://localhost:5555/stories', { 
+        fetch('/stories', { 
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-       
-        },
+        headers: {'Content-Type': 'application/json',},
         body: JSON.stringify(payload),
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    .then(r => {
+        if (r.ok) {
+            r.json()
+            .then(newStory => {
+                fetch('/entries', {
+                    method: "POST",
+                    headers: {'Content-Type': 'application/json',},
+                    body: JSON.stringify({
+                        content: entryContent,
+                        story_id: newStory.story.id
+                    })
+                })
+                .then(rData => {
+                    if (rData.ok) {
+                        console.log('Story created:', newStory);
+                        setActivePromptId(null);
+                        setEntryContent('');
+                        history.push(`/story/${newStory.story.id}`);
+                    }
+                });
+            })
         }
-        return response.json();
     })
-    .then(data => {
-        console.log('Story created:', data);
-        if (!data.id) {
-            console.error('Story ID not returned:', data);
-            throw new Error('Story ID was not returned from the backend');
-        }
-        setActivePromptId(null);
-        setEntryContent('');
-        history.push(`/story/${data.id}`);
-    })
+    // .then(data => {
+    //     console.log('Story created:', data);
+    //     if (!data.id) {
+    //         console.error('Story ID not returned:', data);
+    //         throw new Error('Story ID was not returned from the backend');
+    //     }
+    //     setActivePromptId(null);
+    //     setEntryContent('');
+    //     history.push(`/story/${data.id}`);
+    // })
     .catch(error => {
         console.error('Error creating story:', error);
         alert('Failed to create the story. Please try again.'); 
