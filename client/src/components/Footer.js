@@ -7,14 +7,16 @@ function Footer() {
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '20px 50px',
-            background: '#f8f9fa', 
-            color: '#333', 
-            borderTop: '3px solid #e7e7e7', 
-            position: 'fixed', 
+            background: '#f8f9fa',
+            color: '#333',
+            borderTop: '3px solid #e7e7e7',
+            position: 'fixed',
             left: '0',
             bottom: '0',
             width: '100%', 
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)', 
+            boxSizing: 'border-box',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+            overflow: 'hidden', 
         }}>
             <div>
                 © {new Date().getFullYear()} StoryMerge. All rights reserved.

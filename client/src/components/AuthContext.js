@@ -8,29 +8,46 @@ export function useAuth() {
 
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null); 
+
 
     useEffect(() => {
-        fetch("/check_session").then((response) => {
-          if (response.ok) {
-            response.json().then((user) => {
-                // setUser(user); 
-                setIsLoggedIn(true)});
-          }
+      
+        fetch("/check_session")
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(user => {
+            setCurrentUser(user);
+            setIsLoggedIn(true);
+        })
+        .catch(() => {
+      
+            setCurrentUser(null);
+            setIsLoggedIn(false);
         });
-      }, []);
+    }, []);
 
-    const login = (name, password, plaintext=true) => {
+    const login = (name, password, plaintext = true) => {
         fetch("/login", {
             method: "POST",
-            headers: {"Content-Type": "application/json",},
-            body: JSON.stringify( {name, password, plaintext} ),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, password, plaintext }),
         })
-        // .then(r => { if (r.ok) {setIsLoggedIn(true); return true
-        // } else {console.log(`false: ${r.json()}`);return false}
-    // });
-        .then(r => {return r})
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Login failed');
+        })
+        .then(user => {
+            setCurrentUser(user);
+            setIsLoggedIn(true);
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            setCurrentUser(null);
+            setIsLoggedIn(false);
+        });
     };
-        // the above will create a cookie in session[user_id] that lets the database know you are logged in as that user
 
     const logout = () => {
         fetch("/logout", {
@@ -45,6 +62,7 @@ export const AuthProvider = ({ children }) => {
 
     const value = {
         isLoggedIn,
+        currentUser, 
         login,
         logout
     };
