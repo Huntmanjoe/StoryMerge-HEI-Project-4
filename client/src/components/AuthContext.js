@@ -8,12 +8,14 @@ export function useAuth() {
 
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [activeUser, setActiveUser] = useState(null);
 
     useEffect(() => {
         fetch("/check_session").then((response) => {
           if (response.ok) {
             response.json().then((user) => {
-                // setUser(user); 
+                setActiveUser(user);
+                // console.log('user from context: ', user)
                 setIsLoggedIn(true)});
           }
         });
@@ -44,6 +46,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const value = {
+        activeUser,
         isLoggedIn,
         login,
         logout

@@ -9,7 +9,7 @@ from flask_restful import Resource
 # Local imports
 from config import app, db, api
 # Add your model imports
-from models import User, Prompt, Entry, Story
+from models import User, Prompt, Entry, Story, story_entries
 
 # need to prevent posting
 # @app.before_request
@@ -122,20 +122,22 @@ class Entries(Resource):
         return make_response(jsonify(entries), 200)
     
     def post(self):
-        if not db.session['user_id']: 
-            if not db.session['user_id'] in User.query.filter_by(id=db.session['user_id']):
+        if not session['user_id']: 
+            if not User.query.filter_by(id=session['user_id']):
                 return make_response(jsonify({'error': 'Unauthorized'}, 401))
             
         data = request.get_json()
 
-        try:
-            new_entry = Entry(
-                content = data['content'],
-                user_id = data['user_id']
-            )
-        except:
-            error = {"errors": ["validation errors"]}
-            return make_response(jsonify(error), 400)
+        # try:
+        new_entry = Entry(
+            content = data['content'],
+            user_id = session['user_id'] #posts will only happen if logged in
+        )
+        if data.get('story_id'):
+            new_entry.stories.append(Story.query.filter_by(id=data['story_id']).first())
+        # except:
+        #     error = {"errors": ["validation errors"]}
+        #     return make_response(jsonify(error), 400)
         
         db.session.add(new_entry)
         db.session.commit()
