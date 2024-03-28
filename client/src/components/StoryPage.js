@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
 import { useAuth } from './AuthContext';
 
 const StoryPage = () => {
-  const activeUser = useAuth().activeUser
+  const currentUser = useAuth().currentUser
   // console.log('active user', activeUser)
   const { storyID } = useParams();
   const [allPromptStories, setAllPromptStories] = useState(null);
