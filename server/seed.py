@@ -68,6 +68,7 @@ It is not a garment I cast off this day, but a skin that I tear with my own hand
 
 Nor is it a thought I leave behind me, but a heart made sweet with hunger and with thirst.""",
                    user_id=gibran.id)
+       p2b = Entry(content="asdf", user_id=asdf.id)
        n1 = Entry(content="""
 Outside the entrance of the Mariabronn cloister, whose rounded
 arch rested on slim double columns, a chestnut tree stood close to
@@ -96,10 +97,13 @@ conspicuous outsider in the eyes of the natives.""",
        p_orig = Story(prompt=prophet, title='A First Crack at the Prophet', user_id=gibran.id)
        p_orig.entries.append(p1)
        p_orig.entries.append(p2)
+       p_second = Story(prompt=prophet, title='Rewriting the Prophet', user_id=asdf.id)
+       p_second.entries.append(p1)
+       p_second.entries.append(p2b)
        #could do appending in either direction (appending stories to entries)
        n_orig = Story(prompt=narcissus, title='Take one of N&G', user_id=hesse.id)
        n_orig.entries.append(n1)
-       stories = [p_orig, n_orig]
+       stories = [p_orig, p_second, n_orig]
        db.session.add_all(stories)
 
        db.session.commit()

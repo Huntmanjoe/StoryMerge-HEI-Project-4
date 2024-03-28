@@ -9,12 +9,14 @@ from flask_restful import Resource
 # Local imports
 from config import app, db, api
 # Add your model imports
-from models import User, Prompt, Entry, Story
+from models import User, Prompt, Entry, Story, story_entries
 
 # need to prevent posting
 # @app.before_request
 # def check_if_logged_in():
 #     if not db.session['user_id'] and request.endpoint
+
+# there is a lot of returning {key: obj.to_dict} when just obj.to_dict would suffice
 
 class Users(Resource):
 
@@ -99,7 +101,7 @@ class PromptByID(Resource):
 
     def get(self, id):
         prompt = Prompt.query.filter_by(id=id).first()
-        return make_response(jsonify(prompt), 200)
+        return make_response(prompt.to_dict(), 200)
 
     def patch(self, id):
         # if not db.session['user_id']: 
@@ -122,20 +124,22 @@ class Entries(Resource):
         return make_response(jsonify(entries), 200)
     
     def post(self):
-        if not db.session['user_id']: 
-            if not db.session['user_id'] in User.query.filter_by(id=db.session['user_id']):
+        if not session['user_id']: 
+            if not User.query.filter_by(id=session['user_id']):
                 return make_response(jsonify({'error': 'Unauthorized'}, 401))
             
         data = request.get_json()
 
-        try:
-            new_entry = Entry(
-                content = data['content'],
-                user_id = data['user_id']
-            )
-        except:
-            error = {"errors": ["validation errors"]}
-            return make_response(jsonify(error), 400)
+        # try:
+        new_entry = Entry(
+            content = data['content'],
+            user_id = session['user_id'] #posts will only happen if logged in
+        )
+        if data.get('story_id'):
+            new_entry.stories.append(Story.query.filter_by(id=data['story_id']).first())
+        # except:
+        #     error = {"errors": ["validation errors"]}
+        #     return make_response(jsonify(error), 400)
         
         db.session.add(new_entry)
         db.session.commit()
@@ -148,7 +152,7 @@ class EntryByID(Resource):
 
     def get(self, id):
         entry = Entry.query.filter_by(id=id).first()
-        return make_response(jsonify(entry), 200)
+        return make_response(entry.to_dict(), 200)
 
     def patch(self, id):
         entry = Entry.query.filter_by(id=id).first()
@@ -169,14 +173,31 @@ class Stories(Resource):
         return make_response(jsonify(stories), 200)
     
     def post(self):
-        if not db.session['user_id']: 
-            if not db.session['user_id'] in User.query.filter_by(id=db.session['user_id']):
+        if not session['user_id']: 
+            if not session['user_id'] in User.query.filter_by(id=db.session['user_id']):
                 return make_response(jsonify({'error': 'Unauthorized'}, 401))
             
         data = request.get_json()
 
+        if data['copy'] == True:
+            orig = Story.query.filter_by(id=data['orig_id']).first()
+            diverged = data['diverged']
+            new_story = Story(
+                title = data['title'],
+                user_id = session['user_id'], #logged in
+                prompt_id = orig.id,
+                entries = orig.entries[:diverged]
+            )
+
+            db.session.add(new_story)
+            db.session.commit()
+
+            return make_response({'story': new_story.to_dict()}, 201)
+
         try:
             new_story = Story(
+                title = data['title'],
+                user_id = session['user_id'], #logged in
                 prompt_id = data['prompt_id']
             )
         except:

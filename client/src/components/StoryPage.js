@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min';
+import { useAuth } from './AuthContext';
 
 const StoryPage = () => {
-  const { storyID } = useParams()
-  console.log(storyID)
+  const activeUser = useAuth().activeUser
+  // console.log('active user', activeUser)
+  const { storyID } = useParams();
+  const [allPromptStories, setAllPromptStories] = useState(null);
   const [entry, setEntry] = useState('');
-  const [entries, setEntries] = useState([
+  const [entries, setEntries] = useState([ //sample entries
       { id: 1, username: 'User1', content: 'This is an amazing beginning to the story.', children: [] },
       { id: 2, username: 'User2', content: 'The plot thickens as the mystery deepens.', children: [] },
   ]);
@@ -14,22 +17,71 @@ const StoryPage = () => {
   const [expandedEntries, setExpandedEntries] = useState(new Set());
   const [storyData, setStoryData] = useState(null);
 
+  // still need to check that sub-entry has no children so a whole story copy 
+  // isn't made and that story is instead continued
+
   useEffect(() => {
+    // maybe the right way to do it should be to not refetch on a new entry but update db and state ?
     fetch(`/stories/${storyID}`, {headers: {"Content-Type": "application/json",},})
     .then(r => {if (r.ok) {
       r.json()
-      .then(data => {console.log(data); setStoryData(data); setEntries(data.entries)})
-    }})
+      .then(data => {
+        // console.log(data); 
+        setStoryData(data); 
+        // setEntries(data.entries.map(entry => {entry.children = []; return entry}));
+        setEntries(data.entries);
+        fetch(`/prompts/${data.prompt.id}`)
+        .then(r => {if (r.ok) {
+          r.json()
+          .then(promptData => {
+            // console.log('prompt data stories: ', promptData.stories)
+            setAllPromptStories(promptData.stories)
+            // this is so sloww haha
+            // make sure to use the response data and not the states here
+            for (let [entryI, entry] of data.entries.entries()) {
+              if (promptData.stories) {
+                for (const story of promptData.stories) {
+                  if (story.id !== data.id) {
+                    for (let [storyEntryI, storyEntry] of story.entries.entries()) {
+                      if (storyEntry.id === entry.id && story.entries[storyEntryI+1] !== entries[entryI+1]) {
+                        const newChildEntry = story.entries[storyEntryI+1];
+                        // const entryIndex = entries.findIndex(e => e.id === entry.id);
+                        setEntries(prevEntries => {
+                          const updatedEntries = [...prevEntries];
+                          const existingChildren = updatedEntries[entryI].children || []; // in case there are no children yet
+                          updatedEntries[entryI] = {
+                            ...updatedEntries[entryI],
+                            children: [...existingChildren, newChildEntry]
+                          };
+                          return updatedEntries;
+                        });
+                      } 
+                    }
+                  }
+                }
+              }
+            }
+          })
+        }})
+      })
+    }});
   }, []);
 
-  
-
-
+    // const addReplyToEntry = (entries, parentId, reply) => {
+    //   return entries.map(entry => {
+    //     if (entry.id === parentId) {
+    //       return { ...entry, children: [...entry.children, reply] };
+    //     } else if (entry.children.length > 0) {
+    //       return { ...entry, children: addReplyToEntry(entry.children, parentId, reply) };
+    //     }
+    //     return entry;
+    //   });
+    // };
     const addReplyToEntry = (entries, parentId, reply) => {
       return entries.map(entry => {
         if (entry.id === parentId) {
-          return { ...entry, children: [...entry.children, reply] };
-        } else if (entry.children.length > 0) {
+          return { ...entry, children: [...(entry.children || []), reply] };
+        } else if (entry.children && entry.children.length > 0) {
           return { ...entry, children: addReplyToEntry(entry.children, parentId, reply) };
         }
         return entry;
@@ -37,14 +89,59 @@ const StoryPage = () => {
     };
 
     const handleEntrySubmit = () => {
+      // activeInputId being null means adding to the end of the story, but the button for that has its own onclick function
       if (activeInputId === null) {
-        const newEntry = { id: Date.now(), username: 'PlaceholderUser', content: entry, children: [] };
-        setEntries(prevEntries => [...prevEntries, newEntry]);
+        // const newEntry = { id: Date.now(), username: 'PlaceholderUser', content: entry, children: [] };
+        fetch('/entries', {
+          method: "POST",
+          headers: {"Content-Type": "application/json",},
+          body: JSON.stringify({
+            'content': entry,
+            'story_id': storyID
+          }),
+        })
+        .then(r => {if (r.okay) {
+          r.json()
+          .then(newEntry => setEntries(prevEntries => [...prevEntries, newEntry]));
+        }})
+        // setEntries(prevEntries => [...prevEntries, newEntry]);
         setEntry('');
       } else {
-        const newReply = { id: Date.now(), username: 'PlaceholderUser', content: newEntryContent, children: [] };
-        const updatedEntries = addReplyToEntry(entries, activeInputId, newReply);
-        setEntries(updatedEntries);
+        // const newReply = { id: Date.now(), username: 'PlaceholderUser', content: newEntryContent, children: [] };
+        // const updatedEntries = addReplyToEntry(entries, activeInputId, newReply);
+        fetch('/stories', {
+          method: "POST",
+          headers: {"Content-Type": "application/json",},
+          body: JSON.stringify({
+            'copy': true,
+            'diverged': activeInputId,
+            'orig_id': storyData.id,
+            'title': 'placeholder title',
+            'prompt_id': storyData.prompt.id,
+          })
+        })
+        .then(r => {if (r.ok) {
+          r.json()
+          .then(newStory => {
+            fetch('/entries', {
+              method: "POST",
+              headers: {"Content-Type": "application/json",},
+              body: JSON.stringify({
+                'content': newEntryContent,
+                'story_id': newStory.story.id
+              })
+            })
+            .then(r => {if (r.ok) {
+              r.json()
+              .then(newEntryData => {
+                const updatedEntries = addReplyToEntry(entries, activeInputId, newEntryData.entry);
+                setEntries(updatedEntries)
+              })
+            }})
+          })
+        }})
+        // const updatedEntries = addReplyToEntry(entries, activeInputId, 'ASDF');
+        // setEntries(updatedEntries);
         setNewEntryContent('');
         setActiveInputId(null);
         setExpandedEntries(prev => new Set(prev).add(activeInputId));
@@ -52,9 +149,9 @@ const StoryPage = () => {
     };
     
     const handleContinueFromPoint = (id) => {
-          setActiveInputId(id);
-          setNewEntryContent(''); 
-        };
+      setActiveInputId(id);
+      setNewEntryContent(''); 
+    };
 
 
 
@@ -71,9 +168,13 @@ const StoryPage = () => {
     };
 
 const renderEntries = (entryList, parentId = null) => {
+  if (!entryList) {return <></>}
   return entryList.map((entryData) => (
     <div key={entryData.id} style={parentId ? { ...pageStyles.entry, backgroundColor: '#e9e9e9', marginLeft: '20px' } : pageStyles.entry}>
-      <strong>{entryData.username}:</strong> {entryData.content}
+      <strong>{entryData.user.name}
+      {/* {parentId != null && entryData.children == [] ? ` in ${entryData.stories[0].title}` : ""} */}
+      :</strong> 
+      {entryData.content.split("\n").map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       <div style={pageStyles.entryActions}>
         <button
           style={pageStyles.actionButton}
@@ -113,7 +214,7 @@ const renderEntries = (entryList, parentId = null) => {
 };
 
   console.log('activeInputId:', activeInputId); 
-  console.log('test:', entries[0].content);
+
   if (!storyData) return <div style={{...pageStyles.container, textAlign: 'center'}}>Oops! There is no story here</div>
   
   return (
@@ -137,8 +238,24 @@ const renderEntries = (entryList, parentId = null) => {
         />
         <button style={pageStyles.submitButton} onClick={() => {
                     if (entry.trim()) {
-                        setEntries([...entries, { id: Date.now(), username: 'PlaceholderUser', content: entry, children: [] }]);
-                        setEntry('');
+                      fetch('/entries', {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json",},
+                        body: JSON.stringify({
+                          'content': entry,
+                          'story_id': storyID
+                        }),
+                      })
+                      .then(r => {if (r.ok) {
+                        r.json()
+                        .then(rData => {
+                          // const newEntry = {id:rData.entry.id, username:rData.entry.user.name, content:rData.entry.content, children:[]}
+                          // setEntries(prevEntries => [...prevEntries, newEntry]);
+                          setEntries(prevEntries => [...prevEntries, rData.entry]);
+                        });
+                      }})
+                        // setEntries([...entries, { id: Date.now(), username: activeUser.name, content: entry, children: [] }]);
+                        // setEntry('');
                     }
                 }}>
                     Submit an Entry
